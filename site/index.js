@@ -1,14 +1,16 @@
-import { Universe, Cell } from "../pkg/hello_wasm";
-import { memory } from "../pkg/hello_wasm_bg";
+import {Universe} from "../pkg/hello_wasm";
+import {memory} from "../pkg/hello_wasm_bg";
 
 const CELL_SIZE = 5;
 const GRID_COLOR = "#CCC";
-const DEAD_COLOR = "#FFF";
-const ALIVE_COLOR = "#000"
+const ALIVE_COLOR = "#FFF";
+const DEAD_COLOR = "#000"
 
-const universe = Universe.new();
+const universe = Universe.new(0.343);
 const width = universe.get_width();
 const height = universe.get_height();
+
+console.log(universe.get_rate());
 
 // const pre = document.getElementById("game-of-life-canvas");
 let canvas = document.getElementById('canvas');
@@ -39,9 +41,15 @@ const getIndex = (row, col) => {
     return row * width + col;
 };
 
+const bitIsSet = (n, arr) => {
+    const byte = Math.floor(n / 8);
+    const mask = 1 << (n % 8);
+    return (arr[byte] & mask) === mask;
+};
+
 const drawCells = () => {
     const cellsPtr = universe.get_cells();
-    const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
+    const cells = new Uint8Array(memory.buffer, cellsPtr, width * height / 8);
 
     ctx.beginPath();
 
@@ -49,7 +57,7 @@ const drawCells = () => {
         for (let col = 0; col < width; col++) {
             const idx = getIndex(row, col)
 
-            ctx.fillStyle = cells[idx] === Cell.Dead
+            ctx.fillStyle = bitIsSet(idx, cells)
                 ? DEAD_COLOR
                 : ALIVE_COLOR;
 
@@ -66,12 +74,14 @@ const drawCells = () => {
 };
 
 const renderLoop = () => {
-    universe.tick();
 
     drawGrid();
     drawCells();
 
-    // requestAnimationFrame(renderLoop);
+    universe.tick();
+    requestAnimationFrame(renderLoop);
 };
+
+window.renderLoop = renderLoop;
 
 requestAnimationFrame(renderLoop);
