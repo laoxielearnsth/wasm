@@ -71,7 +71,7 @@ const renderLoop = () => {
     drawGrid();
     drawCells();
 
-    requestAnimationFrame(renderLoop);
+    // requestAnimationFrame(renderLoop);
 };
 
 requestAnimationFrame(renderLoop);
